@@ -1,0 +1,23 @@
+{
+  "name": "rps",
+  "version": "1.0.0",
+  "description": "rock paper scissors w/ chat GPT 4",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Swelly/rps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Swelly/rps/issues"
+  },
+  "homepage": "https://github.com/Swelly/rps#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
