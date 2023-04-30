@@ -4,13 +4,19 @@ const Game = () => {
   const [numIcons, setNumIcons] = useState(0);
   const canvasRef = useRef(null);
   const [icons, setIcons] = useState([]);
+  
+  // Implement the following state variables to track the game's start time and duration.
+  const [startTime, setStartTime] = useState(null);
+  const [duration, setDuration] = useState(null);
 
   useEffect(() => {
     if (numIcons > 0 && numIcons % 3 === 0) {
       setIcons(generateIcons(numIcons));
+      setStartTime(Date.now());
     }
   }, [numIcons]);
 
+  // Implement the following effect to render the icons on the canvas.
   useLayoutEffect(() => {
     if (icons.length > 0) {
       const canvas = canvasRef.current;
@@ -19,11 +25,21 @@ const Game = () => {
         updateIcons(icons);
         checkCollisions(icons);
         renderIcons(ctx, icons);
+  
+        // Check if there's only one type of icon left
+        const iconTypes = new Set(icons.map((icon) => icon.type));
+        if (iconTypes.size === 1 && startTime !== null) {
+          const endTime = Date.now();
+          setDuration((endTime - startTime) / 1000);
+          setStartTime(null);
+          clearInterval(gameInterval);
+        }
       }, 1000 / 60);
   
       return () => clearInterval(gameInterval);
     }
   }, [icons]);
+  
 
   function generateIcons(numIcons) {
     const iconTypes = ['rock', 'paper', 'scissors'];
@@ -54,8 +70,56 @@ const Game = () => {
   }
 
   function checkCollisions(icons) {
-    // Implement collision detection and icon type updates
+    const iconTypes = new Set();
+    
+    // Check for collisions with the edge of the canvas
+    for (let i = 0; i < icons.length; i++) {
+      iconTypes.add(icons[i].type);
+
+      // Check for collisions with other icons
+      for (let j = i + 1; j < icons.length; j++) {
+        const iconA = icons[i];
+        const iconB = icons[j];
+        const dx = iconA.x - iconB.x;
+        const dy = iconA.y - iconB.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = 40; // 2 * icon radius
+        
+        // If two icons collide, the winner is the one with the larger icon type
+        if (distance < minDistance) {
+          const winner = getWinner(iconA.type, iconB.type);
+          if (winner === iconA.type) {
+            iconB.type = winner;
+          } else if (winner === iconB.type) {
+            iconA.type = winner;
+          }
+        }
+      }
+      // If there is only one icon type left, the game is over
+      if (iconTypes.size === 1 || startTime !== null) {
+        const endTime = Date.now();
+        setDuration((endTime - startTime) / 1000);
+        setStartTime(null);
+      }
+    }
   }
+  
+  function getWinner(typeA, typeB) {
+    if (typeA === typeB) {
+      return null;
+    }
+  
+    if (
+      (typeA === 'rock' && typeB === 'scissors') ||
+      (typeA === 'scissors' && typeB === 'paper') ||
+      (typeA === 'paper' && typeB === 'rock')
+    ) {
+      return typeA;
+    } else {
+      return typeB;
+    }
+  }
+  
 
   function renderIcons(ctx, icons) {
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -92,6 +156,7 @@ const Game = () => {
         placeholder="Enter the number of icons"
       />
       <canvas ref={canvasRef} width="800" height="600"></canvas>
+      {duration && <p>It took {duration} seconds for a winner to emerge.</p>}
     </div>
   );
 };
